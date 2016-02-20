@@ -1,0 +1,56 @@
+For the warm up question, it was confusing to me at the begining. The new grammar requires a 
+function as the second element, however, the original grammar takes a set of rules.
+Fortunately, at the discssion section, the TA breify carified the problem and gave us a hint. 
+The way I approach the problem is make (convert_grammar awksub_grammar) a currying function which
+return a function that takes a left hand side(a non terminal symol), and then match it against the
+original grammar's rules, return rules that share the same left hand side symbol as the taken 
+prameter.
+
+
+For the matcher problem, I spent a great deal of time on implementation and even hours to debug.
+The basic idea is not hard to think:
+1. Given a start symbol, find a set of rules that match the symbol
+2. After obtain a set of rules, check rule one by one until we find a rule that we can terminate.
+3. When checking a rule's right hand side, which is a list of symbol, if we come across a terminal
+   symbol, we check if it match the first element of the current fragment. If so, we proceed,
+   otherwise, we discard the entire rule. If the current symbol is non terminal, we go back to step
+   1 and set the start symbol as the current symbol.
+4. A valid derivation is a derivation that terminated(all the rules in the derivation can reach the end)
+
+Even though I get the idea of how to do it pretty quick, but when it comes to implementation, it cost 
+a lot of work. I summerized the hard points as below.
+
+Hard points:
+1. The implementation involves mutal recursive.
+2. where to store the derivation
+3. when to add a rule to derivation
+4. When to call the acceptor
+5. HOW TO GLUE THE IDEA TOGETHER
+
+Tackle the difficulties:
+1. and 'and' keyword defines mutual recursive functions.
+	*I wrote a function (match_rules) that takes a sysmbol that obtain the corresponding rules using 
+	production function.
+	*check obtained rule one by one until we call (match_single_rule) on a rule that return Some(de, suff)
+	*(match_single_rule) check symbol by symbol in a given rule, call (match_rules) on a non terminal when
+	  come across a non terminal symbol.
+2. pass derivation as a parameter both in match_rules and match_single_rule
+3. add a rule to derivation in match_rules when it calls match_single rule on this rule.
+4. Call acceptor in match_single_rule when we match to the end of a rule.
+
+Based on the idea I have above, I wrote my first try on the two function it doesn't work.
+
+I knew the bugs lies in the call of matach_rules in match_single_rule, but I couldn't make it right until
+the TA post a hint on piazza.
+matcher start rule_function acceptor deriv fragment
+vs
+matcher start rule_function (check_symbol rule_function rhs_tail acceptor) deriv fragment
+
+(check_symbol rule_function rhs_tail acceptor) return a new acceptor that will keep going the check the 
+rest of the rule with the advanced frag and derivation.
+
+By understand the difference and change that part in my code, my code finally worked. 
+
+Weekness:
+1. My code can't detect blind alley rules, and can potentially get into infinite loop.
+2. It a naive dfs without prunning, it is slow.
